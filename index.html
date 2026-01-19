@@ -500,7 +500,7 @@
     <div class="ann-icon" aria-hidden="true">✨</div>
     <div class="ann-body">
       <div class="ann-title">Newly added</div>
-      <div class="ann-sub">Quick Snacks &amp; Beverages</div>
+      <div class="ann-sub">Update Lunch &amp; Non veg update</div>
     </div>
     <button class="ann-close" aria-label="Dismiss announcement" id="dismissAnnouncement">✕</button>
   </div>
@@ -586,7 +586,7 @@
   <script>
     /* ========= Data & configuration ========= */
     const formspreeEndpointUrl = "https://formspree.io/f/mjkaaqql";
-    const days = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
+    const days = ["Monday","Tuesday","Wednesday (Non veg special Day)","Thursday","Friday","Saturday","Sunday (Non veg special Day)"];
     const dayEmojis = ['🌅','☀️','🌤️','⛅','🌈','🌻','🌙'];
     const nonVegDays = [2,6];
 
@@ -625,7 +625,7 @@
       { name: "Pongal Sambar", price: 50 },
       { name: "Plain Maggie", price: 30 },
       { name: "Egg Maggie", price: 40 },
-      { name: "Medhu Vadai", price: 20 }
+      { name: "Medhu Vadai", price: 10 }
     ];
 
     const morningNonVeg = [
@@ -637,41 +637,44 @@
     const lunchVegMenu = [
       { name: "Veg Meals", price: 100 },
       { name: "Veg Pulao", price: 100 },
-      { name: "Coconut Rice", price: 60 },
+      
       { name: "Coconut Milk Veg Pulao", price: 100 },
       { name: "Mushroom Biryani", price: 120 },
-      { name: "Paneer Biryani", price: 120 },
+      { name: "Paneer Biryani", price: 130 },
       { name: "Soya Chunks Biryani", price: 100 },
       { name: "Vegetable Dum Biryani", price: 100 },
-      { name: "Kashmiri Pulao", price: 100 },
+
       { name: "Ghee Rice (Veg)", price: 100 }
     ];
 
     // NEW: Added Sadam items for Lunch section
     const lunchSadamItems = [
+	  { name: "Coconut Rice", price: 60 },
       { name: "Thayir Sadam with Poriyal", price: 60 },
       { name: "Lemon Sadam with Poriyal", price: 60 },
       { name: "Puthina Sadam with Poriyal", price: 60 },
       { name: "Thakali Sadam with Poriyal", price: 60 },
       { name: "Pulisadam with Poriyal", price: 60 },
       { name: "Carrot Sadam with Poriyal", price: 60 },
-      { name: "Beetroot Sadam with Poriyal", price: 60 }
+	  { name: "Egg Gravy with Rice", price: 65 },
+	  { name: "Beetroot Sadam with Poriyal", price: 60 }
     ];
 
     const lunchNote = "Includes Sambar or Vatha Kozhambu — Rasam, Moor, Appam";
 
     // UPDATED: Added new non-veg lunch items as requested
     const lunchNonVeg = [
+	  { name: "Prawn Gravy rice", price: 130 },
       { name: "Non-Veg Meals", price: 100 },
-      { name: "Biryani", price: 150 },
       { name: "Chicken Biryani", price: 150 },
-      { name: "Mutton Biryani", price: 250 },
+	  { name: "Chicken 65 Biryani", price: 150 },
+      { name: "Mutton Biryani", price: 350 },
       { name: "Chicken 65", price: 80 },
       { name: "Egg Pepper Fry", price: 40 },
       { name: "Egg Pulao", price: 110 },
       { name: "Egg Biryani", price: 110 },
       { name: "Chicken Pulao", price: 150 },
-      { name: "Pepper Chicken Rice", price: 120 },
+      { name: "Chicken Rice", price: 120 },
       { name: "Chicken Ghee Rice", price: 120 },
       { name: "Chicken Curry Meals", price: 100 },
       { name: "Fish Curry Meals", price: 100 }
@@ -681,30 +684,33 @@
     const dinnerMenu = [
       { name: "Chapathi", price: 20 },
       { name: "Parotta", price: 20 },
-      { name: "Bun Paratha", price: 30 },
+      { name: "Veg Kili Parotta", price: 60 },
       { name: "Poori", price: 20 },
       { name: "Dosa", price: 20 },
-      { name: "Schezwan Veg Fried Rice + Gobi Manchurian", price: 100 },
-      { name: "Chicken Schezwan Fried Rice", price: 110 },
+      { name: "Veg Fried Rice", price: 100 },
+      { name: "Chicken Fried Rice", price: 110 },
       { name: "Egg Fried Rice", price: 100 },
-      { name: "Paneer Butter Masala", price: 99 }
+      { name: "Paneer Butter Masala", price: 100 }
     ];
 
     const dinnerNonVeg = [
+	  { name: "Egg kili Parotta", price: 99 },
+	  { name: "Chicken kili Parotta", price: 150 },
       { name: "Egg Gravy", price: 50 },
       { name: "Chicken Gravy", price: 80 },
       { name: "Chicken Sukka", price: 100 },
       { name: "Prawn Thokku", price: 99 }
+	  
     ];
 
     // UPDATED: Added new Sundal & Legumes items to Egg section
     const eggMenu = [
-      { name: "Egg (Boiled/Omelette etc.)", price: 20 },
-      { name: "Pachapayiru Sundal (Greengram) [120g]", price: 60 },
-      { name: "Navadhanya Sundal [250ml]", price: 50 },
-      { name: "Black Chickpeas (Kala Chana)", price: 40 },
-      { name: "White Chickpeas (Kabuli Chana)", price: 40 },
-      { name: "Red Kidney Beans (Rajma)", price: 60 }
+      { name: "Egg (Boiled/Omelette etc.)", price: 50 },
+      { name: "Pachapayiru Sundal (Greengram)", price: 50 },
+     
+      { name: "Black Chickpeas (Kala Chana)", price: 50 },
+      { name: "White Chickpeas (Kabuli Chana)", price: 50 },
+      { name: "Red Kidney Beans (Rajma)", price: 50 }
     ];
 
     /* ========= Utilities & rendering ========= */
