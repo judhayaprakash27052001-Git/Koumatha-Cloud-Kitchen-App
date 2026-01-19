@@ -555,7 +555,7 @@
 
     <div class="qr-section">
       <span class="qr-label" style="display:block;font-weight:700;margin-bottom:10px">📱 Scan to Pay via UPI</span>
-      <img class="qr-img" src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=upi%3A%2F%2Fpay%3Fpa%3D9962225337%2540ptaxis%26pn%3DKoumatha%26tn%3DFoodOrder" alt="UPI QR Code (Koumatha)" />
+      <img class="qr-img" src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=upi%3A%2F%2Fpay%3Fpa%3D8838739815%2540ptaxis%26pn%3DKoumatha%26tn%3DFoodOrder" alt="UPI QR Code (Koumatha)" />
     </div>
 
     <div style="text-align:center">
@@ -567,7 +567,7 @@
 <footer class="site-footer" role="contentinfo" aria-label="Footer">
   <div class="footer-inner">
     <div class="brand">© koumatha-cloud-kitchen 2025</div>
-    <div class="version">App version V2.2</div>
+    <div class="version">App version V2.3.1</div>
     <div class="version">
       <a
         href="https://judhayaprakash27052001-git.github.io/Personal-Portfolio-Blog/"
@@ -633,6 +633,20 @@
       { name: "Egg Gravy", price: 50 }
     ];
 
+    // UPDATED: Added new lunch items as requested
+    const lunchVegMenu = [
+      { name: "Veg Meals", price: 100 },
+      { name: "Veg Pulao", price: 100 },
+      { name: "Coconut Rice", price: 60 },
+      { name: "Coconut Milk Veg Pulao", price: 100 },
+      { name: "Mushroom Biryani", price: 120 },
+      { name: "Paneer Biryani", price: 120 },
+      { name: "Soya Chunks Biryani", price: 100 },
+      { name: "Vegetable Dum Biryani", price: 100 },
+      { name: "Kashmiri Pulao", price: 100 },
+      { name: "Ghee Rice (Veg)", price: 100 }
+    ];
+
     // NEW: Added Sadam items for Lunch section
     const lunchSadamItems = [
       { name: "Thayir Sadam with Poriyal", price: 60 },
@@ -644,15 +658,23 @@
       { name: "Beetroot Sadam with Poriyal", price: 60 }
     ];
 
-    const lunchVegMenu = [{ name: "Veg Meals", price: 100 }];
     const lunchNote = "Includes Sambar or Vatha Kozhambu — Rasam, Moor, Appam";
 
+    // UPDATED: Added new non-veg lunch items as requested
     const lunchNonVeg = [
       { name: "Non-Veg Meals", price: 100 },
       { name: "Biryani", price: 150 },
       { name: "Chicken Biryani", price: 150 },
       { name: "Mutton Biryani", price: 250 },
-      { name: "Chicken 65", price: 80 }
+      { name: "Chicken 65", price: 80 },
+      { name: "Egg Pepper Fry", price: 40 },
+      { name: "Egg Pulao", price: 110 },
+      { name: "Egg Biryani", price: 110 },
+      { name: "Chicken Pulao", price: 150 },
+      { name: "Pepper Chicken Rice", price: 120 },
+      { name: "Chicken Ghee Rice", price: 120 },
+      { name: "Chicken Curry Meals", price: 100 },
+      { name: "Fish Curry Meals", price: 100 }
     ];
     const lunchNonVegNote = "Includes Meen Kulambu, Egg, Rasam";
 
