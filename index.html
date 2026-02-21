@@ -499,8 +499,8 @@
   <div id="announcement" class="announcement" role="status" aria-live="polite" aria-atomic="true" aria-hidden="true">
     <div class="ann-icon" aria-hidden="true">✨</div>
     <div class="ann-body">
-      <div class="ann-title">Newly added</div>
-      <div class="ann-sub">Update Lunch &amp; Non veg update</div>
+      <div class="ann-title">Newly added 21/02/2026</div>
+      <div class="ann-sub">Update Lunch &amp; New Price Update</div>
     </div>
     <button class="ann-close" aria-label="Dismiss announcement" id="dismissAnnouncement">✕</button>
   </div>
@@ -544,7 +544,7 @@
     <div id="successTitle" class="success-msg">Order Placed Successfully!</div>
 
     <div class="total-price-section" aria-live="polite">
-      <div class="price-label">💰 Total Amount</div>
+      <div class="price-label">💰 Total Amount.. NOTE: Delivery Not Included Please Dm </div>
       <div class="total-price" id="totalPrice">₹0</div>
     </div>
 
@@ -567,7 +567,7 @@
 <footer class="site-footer" role="contentinfo" aria-label="Footer">
   <div class="footer-inner">
     <div class="brand">© koumatha-cloud-kitchen 2025</div>
-    <div class="version">App version V2.3.1</div>
+    <div class="version">App version V2.3.2</div>
     <div class="version">
       <a
         href="https://judhayaprakash27052001-git.github.io/Personal-Portfolio-Blog/"
@@ -606,10 +606,10 @@
       { name: "Black Tea with Ginger", price: 10 },
       { name: "Lemon Tea", price: 12 },
       { name: "Green Tea", price: 12 },
-      { name: "Coffee", price: 12 },
+      { name: "Coffee", price: 15 },
       { name: "Black Coffee", price: 10 },
       { name: "Chukku Coffee", price: 12 },
-      { name: "Boost", price: 15 },
+      { name: "Boost", price: 20 },
       { name: "Horlicks", price: 15 },
       { name: "Milk", price: 12 },
       { name: "Ragi Malt", price: 12 }
@@ -629,55 +629,65 @@
     ];
 
     const morningNonVeg = [
-      { name: "Chicken Gravy", price: 80 },
-      { name: "Egg Gravy", price: 50 }
+      { name: "Chicken Gravy", price: 100 },
+      { name: "Egg Gravy", price: 70 }
     ];
 
     // UPDATED: Added new lunch items as requested
     const lunchVegMenu = [
       { name: "Veg Meals", price: 100 },
       { name: "Veg Pulao", price: 100 },
-      
+	  { name: "Soya chunks 65", price: 70 },
+	  { name: "Cauliflower 65", price: 80 },
+      { name: "Panner 65(freshly home made)", price: 150 },
+	  { name: "Panner 65 briyani", price: 140 },
+	  { name: "Panner 65 briyani", price: 140 },
       { name: "Coconut Milk Veg Pulao", price: 100 },
       { name: "Mushroom Biryani", price: 120 },
       { name: "Paneer Biryani", price: 130 },
       { name: "Soya Chunks Biryani", price: 100 },
       { name: "Vegetable Dum Biryani", price: 100 },
-
-      { name: "Ghee Rice (Veg)", price: 100 }
+      { name: "Mushroom peper fry", price: 100 },
+	  { name: "Bread Roasted veg Briyani", price: 130 },
+      { name: "Ghee Rice (Veg)", price: 100 },
+	  { name: "Keerai poriyal (muruka keerai,ara keerai , seru keerai", price: 30 },
+	  { name: "Boiled rice", price: 20 }
     ];
 
     // NEW: Added Sadam items for Lunch section
     const lunchSadamItems = [
-	  { name: "Coconut Rice", price: 60 },
-      { name: "Thayir Sadam with Poriyal", price: 60 },
-      { name: "Lemon Sadam with Poriyal", price: 60 },
-      { name: "Puthina Sadam with Poriyal", price: 60 },
-      { name: "Thakali Sadam with Poriyal", price: 60 },
-      { name: "Pulisadam with Poriyal", price: 60 },
-      { name: "Carrot Sadam with Poriyal", price: 60 },
-	  { name: "Egg Gravy with Rice", price: 65 },
-	  { name: "Beetroot Sadam with Poriyal", price: 60 }
+	  { name: "Coconut Rice", price: 70 },
+      { name: "Thayir Sadam with Poriyal", price: 70 },
+      { name: "Lemon Sadam with Poriyal", price: 70 },
+      { name: "Puthina Sadam with Poriyal", price: 70 },
+      { name: "Thakali Sadam with Poriyal", price: 70 },
+      { name: "Pulisadam with Poriyal", price: 70 },
+      { name: "Carrot Sadam with Poriyal", price: 70 },
+	  { name: "Egg Gravy with Rice", price: 70 },
+	  { name: "Sadam with appalam", price: 60 },
+	  { name: "Beetroot Sadam with Poriyal", price: 70 }
     ];
 
     const lunchNote = "Includes Sambar or Vatha Kozhambu — Rasam, Moor, Appam";
 
     // UPDATED: Added new non-veg lunch items as requested
     const lunchNonVeg = [
-	  { name: "Prawn Gravy rice", price: 130 },
+	  { name: "Prawn Gravy rice", price: 150 },
       { name: "Non-Veg Meals", price: 100 },
       { name: "Chicken Biryani", price: 150 },
 	  { name: "Chicken 65 Biryani", price: 150 },
       { name: "Mutton Biryani", price: 350 },
-      { name: "Chicken 65", price: 80 },
+      { name: "Chicken 65", price: 130 },
       { name: "Egg Pepper Fry", price: 40 },
       { name: "Egg Pulao", price: 110 },
       { name: "Egg Biryani", price: 110 },
       { name: "Chicken Pulao", price: 150 },
       { name: "Chicken Rice", price: 120 },
       { name: "Chicken Ghee Rice", price: 120 },
-      { name: "Chicken Curry Meals", price: 100 },
-      { name: "Fish Curry Meals", price: 100 }
+      { name: "Chicken Curry Meals", price: 120 },
+      { name: "Fish Curry Meals", price: 120 },
+	  { name: "Dry Fish thokku", price: 80 },
+	  
     ];
     const lunchNonVegNote = "Includes Meen Kulambu, Egg, Rasam";
 
@@ -694,12 +704,12 @@
     ];
 
     const dinnerNonVeg = [
-	  { name: "Egg kili Parotta", price: 99 },
+	  { name: "Egg kili Parotta", price: 100 },
 	  { name: "Chicken kili Parotta", price: 150 },
       { name: "Egg Gravy", price: 50 },
-      { name: "Chicken Gravy", price: 80 },
-      { name: "Chicken Sukka", price: 100 },
-      { name: "Prawn Thokku", price: 99 }
+      { name: "Chicken Gravy", price: 100 },
+      { name: "Chicken Sukka", price: 130 },
+      { name: "Prawn Gravy", price: 130 }
 	  
     ];
 
