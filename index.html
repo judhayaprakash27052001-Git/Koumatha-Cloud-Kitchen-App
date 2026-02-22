@@ -6,6 +6,12 @@
   <title>🍽️ Koumatha Cloud Kitchen</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="color-scheme" content="dark">
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+    crossorigin=""
+  />
   <style>
     :root{
       --bg-0: #0f1419;
@@ -255,6 +261,95 @@
       transform: translateY(-2px);
     }
 
+
+    .location-row{
+      grid-column: 1 / -1;
+      display:grid;
+      grid-template-columns: 1fr auto;
+      gap:10px;
+      align-items:center;
+    }
+
+    .location-row input[type="url"]{
+      padding:14px 18px;
+      border-radius:12px;
+      border:1.5px solid rgba(255,127,80,0.14);
+      background: rgba(255,255,255,0.03);
+      color:#eaf2ff;
+      font-size:0.95rem;
+      width:100%;
+      outline:none;
+    }
+
+    .location-btn{
+      border:1px solid rgba(255,127,80,0.28);
+      background: linear-gradient(135deg, rgba(255,127,80,0.22), rgba(255,179,71,0.14));
+      color:#ffd7a3;
+      font-weight:700;
+      border-radius:12px;
+      padding:12px 14px;
+      cursor:pointer;
+      transition: transform 180ms var(--smooth-ease), box-shadow 180ms var(--smooth-ease);
+    }
+
+    .location-btn:hover{
+      transform: translateY(-2px);
+      box-shadow: 0 10px 22px rgba(255,127,80,0.12);
+    }
+
+    .map-picker-overlay{
+      position:fixed;
+      inset:0;
+      background: rgba(0,0,0,0.78);
+      opacity:0;
+      visibility:hidden;
+      transition: opacity 220ms ease, visibility 220ms ease;
+      z-index: 9920;
+    }
+
+    .map-picker-overlay.show{
+      opacity:1;
+      visibility:visible;
+    }
+
+    .map-picker-modal{
+      position:fixed;
+      left:50%;
+      top:50%;
+      transform:translate(-50%,-50%) scale(0.92);
+      width:94%;
+      max-width:760px;
+      background: linear-gradient(180deg, #121b24, #1b2533);
+      border:1px solid rgba(255,127,80,0.25);
+      border-radius:16px;
+      padding:14px;
+      opacity:0;
+      visibility:hidden;
+      transition: all 260ms var(--smooth-ease);
+      z-index: 9950;
+      box-shadow: 0 30px 80px rgba(0,0,0,0.75);
+    }
+
+    .map-picker-modal.show{
+      opacity:1;
+      visibility:visible;
+      transform:translate(-50%,-50%) scale(1);
+    }
+
+    .map-picker-head{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      margin-bottom:10px;
+    }
+
+    .map-picker-title{ font-size:1rem; font-weight:800; color:#ffd7a3; }
+    .map-picker-note{ color:rgba(230,238,247,0.82); font-size:0.86rem; margin-bottom:10px; }
+    #mapPicker{ width:100%; height:340px; border-radius:12px; overflow:hidden; }
+
+    .map-picker-actions{ display:flex; justify-content:flex-end; gap:10px; margin-top:12px; }
+
     /* Day cards */
     .day-card{
       background: rgba(255,255,255,0.03);
@@ -405,6 +500,7 @@
     .qr-img{ width:160px;height:160px;border-radius:12px;border:4px solid rgba(255,127,80,0.6); background:#fff; padding:8px; display:inline-block }
 
     .close-btn{ margin-top:14px; padding:12px 22px;border-radius:12px;border:none;background:linear-gradient(90deg,var(--accent-1),var(--accent-2)); color:#fff;font-weight:800;cursor:pointer }
+    .close-btn.secondary{ margin-top:0; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.18); }
 
     /* Footer */
     .site-footer{
@@ -434,6 +530,8 @@
       .main-title h1{ font-size:2.2rem; padding:12px 18px; border-radius:18px }
       .main-title{ margin-top:6px }
       .customer-info{ grid-template-columns:1fr; gap:12px }
+      .location-row{ grid-template-columns:1fr; }
+      #mapPicker{ height:300px; }
       .container{ padding:0 14px }
       .header{ backdrop-filter: blur(8px) }
       .notification{ left:12px; right:12px; top:88px }
@@ -519,6 +617,14 @@
 
         <label class="visually-hidden" for="customer_mobile">Mobile Number</label>
         <input id="customer_mobile" name="customer_mobile" type="tel" pattern="[0-9]{10,14}" placeholder="📱 Mobile Number" required aria-required="true" inputmode="tel" />
+
+        <div class="location-row">
+          <label class="visually-hidden" for="customer_map_link">Customer location map link</label>
+          <input id="customer_map_link" name="customer_map_link" type="url" placeholder="📍 Map link (auto-filled when you click Select Here Location)" />
+          <button id="locationBtn" class="location-btn" type="button">📍 Select Here Location</button>
+        </div>
+        <input id="customer_latitude" name="customer_latitude" type="hidden" />
+        <input id="customer_longitude" name="customer_longitude" type="hidden" />
       </div>
 
       <div id="dayCardsContainer" aria-live="polite"></div>
@@ -538,6 +644,20 @@
   </main>
 
   <div class="overlay" id="overlay" tabindex="-1" aria-hidden="true"></div>
+
+  <div class="map-picker-overlay" id="mapPickerOverlay" aria-hidden="true"></div>
+  <div class="map-picker-modal" id="mapPickerModal" role="dialog" aria-modal="true" aria-labelledby="mapPickerTitle" aria-hidden="true">
+    <div class="map-picker-head">
+      <div id="mapPickerTitle" class="map-picker-title">📍 Select delivery location on map</div>
+      <button type="button" class="close-btn secondary" id="closeMapPickerBtn">✕</button>
+    </div>
+    <div class="map-picker-note">Tap on the map where you want delivery. Then press <strong>Use This Location</strong>.</div>
+    <div id="mapPicker"></div>
+    <div class="map-picker-actions">
+      <button type="button" class="close-btn secondary" id="cancelMapPickerBtn">Cancel</button>
+      <button type="button" class="close-btn" id="confirmMapPickerBtn">Use This Location</button>
+    </div>
+  </div>
 
   <div class="success-popup" id="successPopup" role="dialog" aria-modal="true" aria-labelledby="successTitle" aria-hidden="true">
     <div class="checkmark" aria-hidden="true">✨</div>
@@ -582,6 +702,8 @@
   </div>
 </footer>
 
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 
   <script>
     /* ========= Data & configuration ========= */
@@ -889,18 +1011,26 @@
     function gatherOrderSummary(){
       const name = (document.getElementById('customer_name')?.value || '').trim();
       const mobile = (document.getElementById('customer_mobile')?.value || '').trim();
+      const mapLink = (document.getElementById('customer_map_link')?.value || '').trim();
+      const latitude = (document.getElementById('customer_latitude')?.value || '').trim();
+      const longitude = (document.getElementById('customer_longitude')?.value || '').trim();
       const overallNotes = (document.getElementById('custom_notes')?.value || '').trim();
 
       let total = 0;
       let summaryLines = [];
       summaryLines.push(`Name: ${name}`);
       summaryLines.push(`Mobile: ${mobile}`);
+      if(mapLink) summaryLines.push(`Map Link: ${mapLink}`);
+      if(latitude && longitude) summaryLines.push(`Coordinates: ${latitude}, ${longitude}`);
       summaryLines.push('');
 
       // We'll also collect structured data for JSON POST
       const structured = {
         customer_name: name,
         customer_mobile: mobile,
+        customer_map_link: mapLink,
+        customer_latitude: latitude,
+        customer_longitude: longitude,
         total_price: 0,
         items: [], // { day, section, name, price, qty }
         custom_notes_by_day: {}, // day -> { morning: "...", lunch: "...", dinner: "..." }
@@ -1006,6 +1136,80 @@
     const overlay = document.getElementById('overlay');
     const totalPriceElem = document.getElementById('totalPrice');
     const closePopupBtn = document.getElementById('closePopupBtn');
+    const locationBtn = document.getElementById('locationBtn');
+    const mapLinkInput = document.getElementById('customer_map_link');
+    const latitudeInput = document.getElementById('customer_latitude');
+    const longitudeInput = document.getElementById('customer_longitude');
+
+    const mapPickerOverlay = document.getElementById('mapPickerOverlay');
+    const mapPickerModal = document.getElementById('mapPickerModal');
+    const closeMapPickerBtn = document.getElementById('closeMapPickerBtn');
+    const cancelMapPickerBtn = document.getElementById('cancelMapPickerBtn');
+    const confirmMapPickerBtn = document.getElementById('confirmMapPickerBtn');
+
+    let mapPickerInstance = null;
+    let mapPickerMarker = null;
+    let selectedLatLng = null;
+
+    function openMapPicker(){
+      mapPickerOverlay?.classList.add('show');
+      mapPickerModal?.classList.add('show');
+      mapPickerOverlay?.setAttribute('aria-hidden','false');
+      mapPickerModal?.setAttribute('aria-hidden','false');
+
+      if(!mapPickerInstance){
+        mapPickerInstance = L.map('mapPicker');
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          maxZoom: 19,
+          attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(mapPickerInstance);
+
+        mapPickerInstance.setView([11.0168, 76.9558], 12);
+
+        mapPickerInstance.on('click', (event) => {
+          selectedLatLng = event.latlng;
+          if(!mapPickerMarker){
+            mapPickerMarker = L.marker(selectedLatLng).addTo(mapPickerInstance);
+          } else {
+            mapPickerMarker.setLatLng(selectedLatLng);
+          }
+        });
+      }
+
+      setTimeout(() => mapPickerInstance?.invalidateSize(), 120);
+    }
+
+    function closeMapPicker(){
+      mapPickerOverlay?.classList.remove('show');
+      mapPickerModal?.classList.remove('show');
+      mapPickerOverlay?.setAttribute('aria-hidden','true');
+      mapPickerModal?.setAttribute('aria-hidden','true');
+    }
+
+    locationBtn?.addEventListener('click', () => {
+      locationBtn.textContent = '📍 Select Here Location';
+      openMapPicker();
+    });
+
+    closeMapPickerBtn?.addEventListener('click', closeMapPicker);
+    cancelMapPickerBtn?.addEventListener('click', closeMapPicker);
+    mapPickerOverlay?.addEventListener('click', closeMapPicker);
+
+    confirmMapPickerBtn?.addEventListener('click', () => {
+      if(!selectedLatLng){
+        showError('Please tap on the map to choose location.');
+        return;
+      }
+      const lat = selectedLatLng.lat.toFixed(6);
+      const lng = selectedLatLng.lng.toFixed(6);
+      const generatedLink = `https://www.google.com/maps?q=${lat},${lng}`;
+
+      mapLinkInput.value = generatedLink;
+      latitudeInput.value = lat;
+      longitudeInput.value = lng;
+      locationBtn.textContent = '✅ Location Selected';
+      closeMapPicker();
+    });
 
     function setLoading(on){
       if(on){
@@ -1053,6 +1257,9 @@
       const payload = {
         customer_name: result.structured.customer_name,
         customer_mobile: result.structured.customer_mobile,
+        customer_map_link: result.structured.customer_map_link,
+        customer_latitude: result.structured.customer_latitude,
+        customer_longitude: result.structured.customer_longitude,
         total_price: result.structured.total_price,
         orderSummaryText: result.summaryText,
         orderItems: result.structured.items,
@@ -1088,6 +1295,15 @@
       overlay.setAttribute('aria-hidden', 'true');
       // reset form
       document.getElementById('menuForm').reset();
+      if(locationBtn){
+        locationBtn.disabled = false;
+        locationBtn.textContent = '📍 Select Here Location';
+      }
+      selectedLatLng = null;
+      if(mapPickerMarker && mapPickerInstance){
+        mapPickerInstance.removeLayer(mapPickerMarker);
+        mapPickerMarker = null;
+      }
       // collapse all cards
       document.querySelectorAll('.day-card').forEach(c=>{
         c.classList.remove('expanded');
@@ -1160,4 +1376,3 @@
   </script>
 </body>
 </html>
-
