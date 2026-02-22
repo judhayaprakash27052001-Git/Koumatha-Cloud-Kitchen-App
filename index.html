@@ -458,6 +458,23 @@
     .submit-btn:active{ transform:translateY(1px) }
     .submit-btn.loading{ pointer-events:none; opacity:0.9; }
 
+    .order-insights{
+      margin-top:12px;
+      background: linear-gradient(135deg, rgba(255,127,80,0.08), rgba(191,164,58,0.05));
+      border:1px solid rgba(255,127,80,0.16);
+      border-radius:14px;
+      padding:12px;
+      display:grid;
+      grid-template-columns: repeat(3, minmax(0,1fr));
+      gap:10px;
+      align-items:center;
+    }
+    .insight-pill{ background:rgba(255,255,255,0.04); border-radius:10px; padding:8px 10px; }
+    .insight-pill .label{ font-size:0.76rem; color:rgba(255,181,71,0.85); text-transform:uppercase; letter-spacing:0.8px; }
+    .insight-pill .value{ font-size:1.05rem; font-weight:800; color:#fff; }
+    .insight-actions{ display:flex; justify-content:flex-end; }
+    .insight-btn{ border:none; background:linear-gradient(90deg,var(--accent-1),var(--accent-2)); color:#fff; font-weight:700; border-radius:10px; padding:10px 12px; cursor:pointer; }
+
     .loader{ width:18px;height:18px;border-radius:50%;border:3px solid rgba(255,255,255,0.28);border-top-color:#fff;display:none; animation: loaderSpin 700ms linear infinite }
     .submit-btn.loading .loader{ display:inline-block }
     @keyframes loaderSpin{ to{ transform:rotate(360deg) } }
@@ -534,6 +551,9 @@
       .location-row{ grid-template-columns:1fr; }
       #mapPicker{ height:300px; }
       .container{ padding:0 14px }
+      .order-insights{ grid-template-columns:1fr; }
+      .insight-actions{ justify-content:stretch; }
+      .insight-btn{ width:100%; }
       .header{ backdrop-filter: blur(8px) }
       .notification{ left:12px; right:12px; top:88px }
       .success-popup{ padding:20px }
@@ -642,6 +662,20 @@
         <span class="loader" aria-hidden="true"></span>
       </button>
     </div>
+
+    <section class="order-insights" aria-live="polite" aria-label="Live order insights">
+      <div class="insight-pill">
+        <div class="label">Selected Items</div>
+        <div class="value" id="insightItemsCount">0</div>
+      </div>
+      <div class="insight-pill">
+        <div class="label">Estimated Total</div>
+        <div class="value" id="insightTotal">₹0</div>
+      </div>
+      <div class="insight-actions">
+        <button type="button" id="copySummaryBtn" class="insight-btn">📋 Copy Order Preview</button>
+      </div>
+    </section>
   </main>
 
   <div class="overlay" id="overlay" tabindex="-1" aria-hidden="true"></div>
@@ -903,6 +937,7 @@
       if(cb && cb.checked){
         showNotification('🎉', cb.dataset.name, categoryName);
       }
+      if(typeof updateOrderInsights === 'function') updateOrderInsights();
     };
 
     window.decreaseQty = function(elementId){
@@ -910,12 +945,14 @@
       if(!input) return;
       const v = Math.max(1, parseInt(input.value||"1",10));
       if(v>1) input.value = v-1;
+      if(typeof updateOrderInsights === 'function') updateOrderInsights();
     };
     window.increaseQty = function(elementId){
       const input = document.getElementById(elementId);
       if(!input) return;
       const v = Math.max(1, parseInt(input.value||"1",10));
       if(v<20) input.value = v+1;
+      if(typeof updateOrderInsights === 'function') updateOrderInsights();
     };
 
     // build day cards with added "Something else? Type here" boxes for morning, lunch, dinner
@@ -1137,6 +1174,9 @@
     const overlay = document.getElementById('overlay');
     const totalPriceElem = document.getElementById('totalPrice');
     const closePopupBtn = document.getElementById('closePopupBtn');
+    const insightItemsCount = document.getElementById('insightItemsCount');
+    const insightTotal = document.getElementById('insightTotal');
+    const copySummaryBtn = document.getElementById('copySummaryBtn');
     const locationBtn = document.getElementById('locationBtn');
     const mapLinkInput = document.getElementById('customer_map_link');
     const latitudeInput = document.getElementById('customer_latitude');
@@ -1230,7 +1270,27 @@
       longitudeInput.value = lng;
       locationBtn.textContent = '✅ Location Selected';
       closeMapPicker();
+      updateOrderInsights();
     });
+
+    function updateOrderInsights(){
+      const checkedCount = document.querySelectorAll('#menuForm input[type="checkbox"]:checked').length;
+      const quick = gatherOrderSummary();
+      if(insightItemsCount) insightItemsCount.textContent = String(checkedCount);
+      if(insightTotal) insightTotal.textContent = `₹${quick.total}`;
+    }
+
+    copySummaryBtn?.addEventListener('click', async () => {
+      const summary = gatherOrderSummary().summaryText;
+      try {
+        await navigator.clipboard.writeText(summary);
+        showError('Order preview copied ✅');
+      } catch (error) {
+        showError('Unable to copy now. Please copy manually.');
+      }
+    });
+
+    document.getElementById('menuForm')?.addEventListener('change', updateOrderInsights);
 
     function setLoading(on){
       if(on){
@@ -1332,6 +1392,7 @@
         const content = c.querySelector('.card-content');
         if(content) content.style.maxHeight = '0px';
       });
+      updateOrderInsights();
       submitBtn.focus();
     }
 
