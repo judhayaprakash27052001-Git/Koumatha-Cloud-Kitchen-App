@@ -225,10 +225,10 @@
     form#menuForm{margin-top:6px}
     .customer-info{
       display:grid;
-      grid-template-columns:1fr 1fr;
+      grid-template-columns:1fr 1fr 1.2fr;
       gap:14px;
       margin-bottom:20px;
-      align-items:center;
+      align-items:stretch;
     }
     label.visually-hidden{
       position:absolute!important;height:1px;width:1px;overflow:hidden;
@@ -254,6 +254,38 @@
       border-color: var(--accent-1);
       transform: translateY(-2px);
     }
+
+    .location-picker{
+      border:1.5px solid rgba(255,127,80,0.14);
+      border-radius:12px;
+      background: rgba(255,255,255,0.03);
+      padding:12px;
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+    }
+    .location-actions{ display:flex; gap:10px; flex-wrap:wrap; }
+    .location-btn{
+      border:1px solid rgba(255,181,71,0.35);
+      background:rgba(255,181,71,0.12);
+      color:#ffdca2;
+      border-radius:8px;
+      padding:8px 12px;
+      font-weight:600;
+      cursor:pointer;
+    }
+    .location-link{ color:#ffce7d; font-size:0.88rem; text-decoration:none; }
+    .location-link:hover{ text-decoration:underline; }
+    .map-preview{
+      width:100%;
+      height:130px;
+      border:0;
+      border-radius:10px;
+      background:#1b222e;
+      display:none;
+    }
+    .map-preview.show{ display:block; }
+    .location-status{ font-size:0.84rem; color:rgba(255,198,132,0.88); min-height:18px; }
 
     /* Day cards */
     .day-card{
@@ -519,6 +551,17 @@
 
         <label class="visually-hidden" for="customer_mobile">Mobile Number</label>
         <input id="customer_mobile" name="customer_mobile" type="tel" pattern="[0-9]{10,14}" placeholder="📱 Mobile Number" required aria-required="true" inputmode="tel" />
+
+        <div class="location-picker" aria-live="polite">
+          <label class="visually-hidden" for="customer_location_link">Live Location</label>
+          <input id="customer_location_link" name="customer_location_link" type="text" placeholder="📍 Live location link" readonly />
+          <div class="location-actions">
+            <button type="button" id="captureLocationBtn" class="location-btn">Use Live Location</button>
+            <a id="openMapLink" class="location-link" target="_blank" rel="noopener noreferrer" style="display:none">Open in map</a>
+          </div>
+          <div id="locationStatus" class="location-status">Tap "Use Live Location" to attach map location.</div>
+          <iframe id="mapPreview" class="map-preview" loading="lazy" referrerpolicy="no-referrer-when-downgrade" title="Selected live location map preview"></iframe>
+        </div>
       </div>
 
       <div id="dayCardsContainer" aria-live="polite"></div>
@@ -889,18 +932,21 @@
     function gatherOrderSummary(){
       const name = (document.getElementById('customer_name')?.value || '').trim();
       const mobile = (document.getElementById('customer_mobile')?.value || '').trim();
+      const locationLink = (document.getElementById('customer_location_link')?.dataset?.mapViewUrl || '').trim();
       const overallNotes = (document.getElementById('custom_notes')?.value || '').trim();
 
       let total = 0;
       let summaryLines = [];
       summaryLines.push(`Name: ${name}`);
       summaryLines.push(`Mobile: ${mobile}`);
+      summaryLines.push(`Location: ${locationLink || 'Not provided'}`);
       summaryLines.push('');
 
       // We'll also collect structured data for JSON POST
       const structured = {
         customer_name: name,
         customer_mobile: mobile,
+        customer_location_link: locationLink,
         total_price: 0,
         items: [], // { day, section, name, price, qty }
         custom_notes_by_day: {}, // day -> { morning: "...", lunch: "...", dinner: "..." }
@@ -1002,6 +1048,11 @@
     const submitBtn = document.getElementById('submitBtn');
     const submitText = document.getElementById('submitText');
     const loader = submitBtn.querySelector('.loader');
+    const captureLocationBtn = document.getElementById('captureLocationBtn');
+    const locationInput = document.getElementById('customer_location_link');
+    const mapPreview = document.getElementById('mapPreview');
+    const openMapLink = document.getElementById('openMapLink');
+    const locationStatus = document.getElementById('locationStatus');
     const successPopup = document.getElementById('successPopup');
     const overlay = document.getElementById('overlay');
     const totalPriceElem = document.getElementById('totalPrice');
@@ -1037,13 +1088,53 @@
       setTimeout(()=>{ err.classList.remove('show'); err.classList.add('hide'); setTimeout(()=> err.remove(),380) }, 3500);
     }
 
+    function updateLocationUI(mapUrl){
+      locationInput.value = mapUrl || '';
+      if(mapUrl){
+        mapPreview.src = mapUrl;
+        mapPreview.classList.add('show');
+        openMapLink.href = mapUrl;
+        openMapLink.style.display = 'inline';
+        locationStatus.textContent = '✅ Location attached successfully.';
+      } else {
+        mapPreview.src = '';
+        mapPreview.classList.remove('show');
+        openMapLink.removeAttribute('href');
+        openMapLink.style.display = 'none';
+      }
+    }
+
+    captureLocationBtn?.addEventListener('click', () => {
+      if(!navigator.geolocation){
+        locationStatus.textContent = 'Geolocation is not supported on this device/browser.';
+        return;
+      }
+
+      locationStatus.textContent = 'Getting your current location...';
+      navigator.geolocation.getCurrentPosition((position)=>{
+        const lat = position.coords.latitude;
+        const lon = position.coords.longitude;
+        const embedUrl = `https://maps.google.com/maps?q=${lat},${lon}&z=15&output=embed`;
+        const viewUrl = `https://maps.google.com/?q=${lat},${lon}`;
+        updateLocationUI(embedUrl);
+        locationInput.dataset.mapViewUrl = viewUrl;
+      }, ()=>{
+        locationStatus.textContent = 'Unable to fetch location. Please allow location permission and retry.';
+      }, {
+        enableHighAccuracy: true,
+        timeout: 12000,
+        maximumAge: 0
+      });
+    });
+
     // When submitting, send both a clear text summary and structured JSON so the mail is arranged and includes custom boxes.
     submitBtn.addEventListener('click', async function(e){
       e.preventDefault();
       const name = document.getElementById('customer_name').value.trim();
       const mobile = document.getElementById('customer_mobile').value.trim();
-      if(!name || !mobile){
-        showError('Please enter name and mobile number');
+      const locationLink = (document.getElementById('customer_location_link').dataset.mapViewUrl || '').trim();
+      if(!name || !mobile || !locationLink){
+        showError('Please enter name, mobile number and live location');
         return;
       }
       setLoading(true);
@@ -1053,6 +1144,7 @@
       const payload = {
         customer_name: result.structured.customer_name,
         customer_mobile: result.structured.customer_mobile,
+        customer_location_link: locationLink,
         total_price: result.structured.total_price,
         orderSummaryText: result.summaryText,
         orderItems: result.structured.items,
@@ -1088,6 +1180,9 @@
       overlay.setAttribute('aria-hidden', 'true');
       // reset form
       document.getElementById('menuForm').reset();
+      delete locationInput.dataset.mapViewUrl;
+      updateLocationUI('');
+      locationStatus.textContent = 'Tap "Use Live Location" to attach map location.';
       // collapse all cards
       document.querySelectorAll('.day-card').forEach(c=>{
         c.classList.remove('expanded');
