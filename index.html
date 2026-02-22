@@ -616,16 +616,17 @@
     ];
 
     const morningMenu = [
-      { name: "Idly", price: 10 },
-      { name: "Dosa", price: 20 },
-      { name: "Gheepodidosa", price: 40 },
-      { name: "Poori", price: 20 },
+      { name: "Idly  (1 piece)", price: 10 },
+      { name: "Dosa  (1 piece)", price: 20 },
+      { name: "Gheepodidosa  (1 piece)", price: 40 },
+      { name: "Poori  (1 piece)", price: 20 },
       { name: "Upma", price: 30 },
-      { name: "Chapathi", price: 20 },
+      { name: "Chapathi  (1 piece)", price: 20 },
       { name: "Pongal Sambar", price: 50 },
-      { name: "Plain Maggie", price: 30 },
-      { name: "Egg Maggie", price: 40 },
-      { name: "Medhu Vadai", price: 10 }
+	  { name: "Medhu Vadai", price: 10 },
+      { name: "Wheat Plain Noodles", price: 30 },
+      { name: "Wheat Egg Noodles", price: 40 }
+      
     ];
 
     const morningNonVeg = [
@@ -639,12 +640,12 @@
       { name: "Veg Pulao", price: 100 },
 	  { name: "Soya chunks 65", price: 70 },
 	  { name: "Cauliflower 65", price: 80 },
-      { name: "Panner 65(freshly home made)", price: 150 },
-	  { name: "Panner 65 briyani", price: 140 },
-	  { name: "Panner 65 briyani", price: 140 },
+      { name: "Panner 65(freshly home made)", price: 135 },
+	  { name: "Panner 65 briyani (freshly home made Panner) ", price: 150 },
+	  { name: "Panner briyani (freshly home made Panner) ", price: 140 },
       { name: "Coconut Milk Veg Pulao", price: 100 },
       { name: "Mushroom Biryani", price: 120 },
-      { name: "Paneer Biryani", price: 130 },
+      { name: "Paneer Biryani (freshly home made Panner) ", price: 130 },
       { name: "Soya Chunks Biryani", price: 100 },
       { name: "Vegetable Dum Biryani", price: 100 },
       { name: "Mushroom peper fry", price: 100 },
@@ -656,6 +657,7 @@
 
     // NEW: Added Sadam items for Lunch section
     const lunchSadamItems = [
+	  { name: "All Sadam with appalam", price: 60 }
 	  { name: "Coconut Rice", price: 70 },
       { name: "Thayir Sadam with Poriyal", price: 70 },
       { name: "Lemon Sadam with Poriyal", price: 70 },
@@ -664,8 +666,8 @@
       { name: "Pulisadam with Poriyal", price: 70 },
       { name: "Carrot Sadam with Poriyal", price: 70 },
 	  { name: "Egg Gravy with Rice", price: 70 },
-	  { name: "Sadam with appalam", price: 60 },
 	  { name: "Beetroot Sadam with Poriyal", price: 70 }
+	  
     ];
 
     const lunchNote = "Includes Sambar or Vatha Kozhambu — Rasam, Moor, Appam";
@@ -771,7 +773,7 @@
         'lunch_nonveg': '🍗 Lunch Non-Veg',
         'dinner': '🌙 Dinner',
         'dinner_nonveg': '🍗 Dinner Non-Veg',
-        'egg': '🥚 Egg & Sundal Section'
+        'egg': '🥚 healthy section'
       };
       const categoryKey = Object.keys(categoryMap).find(k => itemId.startsWith(k + '_')) || 'order';
       const categoryName = categoryMap[categoryKey] || 'Order';
@@ -828,7 +830,7 @@
           <div class="meal-note">${lunchNote}</div>
           <div class="menu-multi-row">${renderMultiSelect(lunchVegMenu,'lunch',i,false)}</div>
           <div style="height:8px"></div>
-          <div class="meal-title" style="color: #ffb347; font-size: 0.98rem;">🍚 Sadam Items (₹60 each)</div>
+          <div class="meal-title" style="color: #ffb347; font-size: 0.98rem;">🍚 Sadam Items</div>
           <div class="menu-multi-row">${renderMultiSelect(lunchSadamItems,'lunch_sadam',i,false)}</div>
           ${isNonVeg?`<div style="height:8px"></div>
             <div class="menu-multi-row">${renderMultiSelect(lunchNonVeg,'lunch_nonveg',i,false)}</div>`:''}
@@ -848,7 +850,7 @@
         </div>
 
         <div class="meal-section">
-          <div class="meal-title">🥚 Egg & Sundal Section</div>
+          <div class="meal-title">🥚 Healthy Section</div>
           <div class="menu-multi-row">${renderMultiSelect(eggMenu,'egg',i,false)}</div>
         </div>
       `;
@@ -1158,3 +1160,4 @@
   </script>
 </body>
 </html>
+
