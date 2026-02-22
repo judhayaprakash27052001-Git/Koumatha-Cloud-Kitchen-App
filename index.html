@@ -6,6 +6,12 @@
   <title>🍽️ Koumatha Cloud Kitchen</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="color-scheme" content="dark">
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+    crossorigin=""
+  />
   <style>
     :root{
       --bg-0: #0f1419;
@@ -291,6 +297,60 @@
       box-shadow: 0 10px 22px rgba(255,127,80,0.12);
     }
 
+    .map-picker-overlay{
+      position:fixed;
+      inset:0;
+      background: rgba(0,0,0,0.78);
+      opacity:0;
+      visibility:hidden;
+      transition: opacity 220ms ease, visibility 220ms ease;
+      z-index: 9920;
+    }
+
+    .map-picker-overlay.show{
+      opacity:1;
+      visibility:visible;
+    }
+
+    .map-picker-modal{
+      position:fixed;
+      left:50%;
+      top:50%;
+      transform:translate(-50%,-50%) scale(0.92);
+      width:94%;
+      max-width:760px;
+      background: linear-gradient(180deg, #121b24, #1b2533);
+      border:1px solid rgba(255,127,80,0.25);
+      border-radius:16px;
+      padding:14px;
+      opacity:0;
+      visibility:hidden;
+      transition: all 260ms var(--smooth-ease);
+      z-index: 9950;
+      box-shadow: 0 30px 80px rgba(0,0,0,0.75);
+    }
+
+    .map-picker-modal.show{
+      opacity:1;
+      visibility:visible;
+      transform:translate(-50%,-50%) scale(1);
+    }
+
+    .map-picker-head{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      margin-bottom:10px;
+    }
+
+    .map-picker-title{ font-size:1rem; font-weight:800; color:#ffd7a3; }
+    .map-picker-note{ color:rgba(230,238,247,0.82); font-size:0.86rem; margin-bottom:10px; }
+    #mapPicker{ width:100%; height:340px; border-radius:12px; overflow:hidden; }
+
+    .map-picker-actions{ display:flex; justify-content:flex-end; gap:10px; margin-top:12px; }
+    .map-fallback{ height:340px; border-radius:12px; border:1px dashed rgba(255,181,71,0.45); display:flex; align-items:center; justify-content:center; text-align:center; padding:16px; color:rgba(230,238,247,0.88); }
+
     /* Day cards */
     .day-card{
       background: rgba(255,255,255,0.03);
@@ -398,6 +458,28 @@
     .submit-btn:active{ transform:translateY(1px) }
     .submit-btn.loading{ pointer-events:none; opacity:0.9; }
 
+    .order-insights{
+      margin-top:12px;
+      background: linear-gradient(135deg, rgba(255,127,80,0.08), rgba(191,164,58,0.05));
+      border:1px solid rgba(255,127,80,0.16);
+      border-radius:14px;
+      padding:12px;
+      display:grid;
+      grid-template-columns: repeat(3, minmax(0,1fr));
+      gap:10px;
+      align-items:center;
+    }
+    .insight-pill{ background:rgba(255,255,255,0.04); border-radius:10px; padding:8px 10px; }
+    .insight-pill .label{ font-size:0.76rem; color:rgba(255,181,71,0.85); text-transform:uppercase; letter-spacing:0.8px; }
+    .insight-pill .value{ font-size:1.05rem; font-weight:800; color:#fff; }
+    .insight-actions{ display:flex; justify-content:flex-end; gap:8px; flex-wrap:wrap; }
+    .insight-btn{ border:none; background:linear-gradient(90deg,var(--accent-1),var(--accent-2)); color:#fff; font-weight:700; border-radius:10px; padding:10px 12px; cursor:pointer; }
+    .budget-input{ width:100%; margin-top:6px; padding:8px 10px; border-radius:8px; border:1px solid rgba(255,127,80,0.2); background:rgba(255,255,255,0.04); color:#fff; }
+    .budget-status{ font-size:0.88rem; margin-top:4px; font-weight:700; }
+    .budget-status.good{ color:#66ff9a; }
+    .budget-status.warn{ color:#ffd37a; }
+    .budget-status.bad{ color:#ff8a8a; }
+
     .loader{ width:18px;height:18px;border-radius:50%;border:3px solid rgba(255,255,255,0.28);border-top-color:#fff;display:none; animation: loaderSpin 700ms linear infinite }
     .submit-btn.loading .loader{ display:inline-block }
     @keyframes loaderSpin{ to{ transform:rotate(360deg) } }
@@ -441,6 +523,7 @@
     .qr-img{ width:160px;height:160px;border-radius:12px;border:4px solid rgba(255,127,80,0.6); background:#fff; padding:8px; display:inline-block }
 
     .close-btn{ margin-top:14px; padding:12px 22px;border-radius:12px;border:none;background:linear-gradient(90deg,var(--accent-1),var(--accent-2)); color:#fff;font-weight:800;cursor:pointer }
+    .close-btn.secondary{ margin-top:0; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.18); }
 
     /* Footer */
     .site-footer{
@@ -471,7 +554,11 @@
       .main-title{ margin-top:6px }
       .customer-info{ grid-template-columns:1fr; gap:12px }
       .location-row{ grid-template-columns:1fr; }
+      #mapPicker{ height:300px; }
       .container{ padding:0 14px }
+      .order-insights{ grid-template-columns:1fr; }
+      .insight-actions{ justify-content:stretch; }
+      .insight-btn{ width:100%; }
       .header{ backdrop-filter: blur(8px) }
       .notification{ left:12px; right:12px; top:88px }
       .success-popup{ padding:20px }
@@ -580,9 +667,42 @@
         <span class="loader" aria-hidden="true"></span>
       </button>
     </div>
+
+    <section class="order-insights" aria-live="polite" aria-label="Live order insights">
+      <div class="insight-pill">
+        <div class="label">Selected Items</div>
+        <div class="value" id="insightItemsCount">0</div>
+      </div>
+      <div class="insight-pill">
+        <div class="label">Estimated Total</div>
+        <div class="value" id="insightTotal">₹0</div>
+      </div>
+      <div class="insight-pill">
+        <div class="label">Budget Planner</div>
+        <input type="number" min="0" step="10" id="budgetInput" class="budget-input" placeholder="Set budget in ₹" />
+        <div id="budgetStatus" class="budget-status">Set budget to track remaining amount</div>
+      </div>
+      <div class="insight-actions">
+        <button type="button" id="copySummaryBtn" class="insight-btn">📋 Copy Order Preview</button>
+      </div>
+    </section>
   </main>
 
   <div class="overlay" id="overlay" tabindex="-1" aria-hidden="true"></div>
+
+  <div class="map-picker-overlay" id="mapPickerOverlay" aria-hidden="true"></div>
+  <div class="map-picker-modal" id="mapPickerModal" role="dialog" aria-modal="true" aria-labelledby="mapPickerTitle" aria-hidden="true">
+    <div class="map-picker-head">
+      <div id="mapPickerTitle" class="map-picker-title">📍 Select delivery location on map</div>
+      <button type="button" class="close-btn secondary" id="closeMapPickerBtn">✕</button>
+    </div>
+    <div class="map-picker-note">Tap on the map where you want delivery. Then press <strong>Use This Location</strong>.</div>
+    <div id="mapPicker"></div>
+    <div class="map-picker-actions">
+      <button type="button" class="close-btn secondary" id="cancelMapPickerBtn">Cancel</button>
+      <button type="button" class="close-btn" id="confirmMapPickerBtn">Use This Location</button>
+    </div>
+  </div>
 
   <div class="success-popup" id="successPopup" role="dialog" aria-modal="true" aria-labelledby="successTitle" aria-hidden="true">
     <div class="checkmark" aria-hidden="true">✨</div>
@@ -612,7 +732,7 @@
 <footer class="site-footer" role="contentinfo" aria-label="Footer">
   <div class="footer-inner">
     <div class="brand">© koumatha-cloud-kitchen 2025</div>
-    <div class="version">App version V2.3.2</div>
+    <div class="version">App version V3.0.0</div>
     <div class="version">
       <a
         href="https://judhayaprakash27052001-git.github.io/Personal-Portfolio-Blog/"
@@ -627,6 +747,8 @@
   </div>
 </footer>
 
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 
   <script>
     /* ========= Data & configuration ========= */
@@ -733,7 +855,7 @@
       { name: "Chicken Ghee Rice", price: 120 },
       { name: "Chicken Curry Meals", price: 120 },
       { name: "Fish Curry Meals", price: 120 },
-	  { name: "Dry Fish thokku", price: 80 }
+	  { name: "Dry Fish thokku", price: 80 },
 	  
     ];
     const lunchNonVegNote = "Includes Meen Kulambu, Egg, Rasam";
@@ -825,6 +947,7 @@
       if(cb && cb.checked){
         showNotification('🎉', cb.dataset.name, categoryName);
       }
+      if(typeof updateOrderInsights === 'function') updateOrderInsights();
     };
 
     window.decreaseQty = function(elementId){
@@ -832,12 +955,14 @@
       if(!input) return;
       const v = Math.max(1, parseInt(input.value||"1",10));
       if(v>1) input.value = v-1;
+      if(typeof updateOrderInsights === 'function') updateOrderInsights();
     };
     window.increaseQty = function(elementId){
       const input = document.getElementById(elementId);
       if(!input) return;
       const v = Math.max(1, parseInt(input.value||"1",10));
       if(v<20) input.value = v+1;
+      if(typeof updateOrderInsights === 'function') updateOrderInsights();
     };
 
     // build day cards with added "Something else? Type here" boxes for morning, lunch, dinner
@@ -1059,33 +1184,152 @@
     const overlay = document.getElementById('overlay');
     const totalPriceElem = document.getElementById('totalPrice');
     const closePopupBtn = document.getElementById('closePopupBtn');
+    const insightItemsCount = document.getElementById('insightItemsCount');
+    const insightTotal = document.getElementById('insightTotal');
+    const budgetInput = document.getElementById('budgetInput');
+    const budgetStatus = document.getElementById('budgetStatus');
+    const copySummaryBtn = document.getElementById('copySummaryBtn');
     const locationBtn = document.getElementById('locationBtn');
     const mapLinkInput = document.getElementById('customer_map_link');
     const latitudeInput = document.getElementById('customer_latitude');
     const longitudeInput = document.getElementById('customer_longitude');
 
-    locationBtn?.addEventListener('click', () => {
-      if(!navigator.geolocation){
-        showError('Location is not supported in this browser');
+    const mapPickerOverlay = document.getElementById('mapPickerOverlay');
+    const mapPickerModal = document.getElementById('mapPickerModal');
+    const closeMapPickerBtn = document.getElementById('closeMapPickerBtn');
+    const cancelMapPickerBtn = document.getElementById('cancelMapPickerBtn');
+    const confirmMapPickerBtn = document.getElementById('confirmMapPickerBtn');
+
+    let mapPickerInstance = null;
+    let mapPickerMarker = null;
+    let selectedLatLng = null;
+
+    function setFallbackMapMessage(){
+      const mapElem = document.getElementById('mapPicker');
+      if(mapElem){
+        mapElem.innerHTML = '<div class="map-fallback">Map library did not load.<br/>Please use current location or paste map link manually in the box.</div>';
+      }
+    }
+
+    function openMapPicker(){
+      mapPickerOverlay?.classList.add('show');
+      mapPickerModal?.classList.add('show');
+      mapPickerOverlay?.setAttribute('aria-hidden','false');
+      mapPickerModal?.setAttribute('aria-hidden','false');
+
+      if(typeof window.L === 'undefined'){
+        setFallbackMapMessage();
+        showError('Map failed to load. You can still paste link manually.');
         return;
       }
-      locationBtn.disabled = true;
-      locationBtn.textContent = 'Locating...';
-      navigator.geolocation.getCurrentPosition((pos) => {
-        const lat = pos.coords.latitude.toFixed(6);
-        const lng = pos.coords.longitude.toFixed(6);
-        const generatedLink = `https://www.google.com/maps?q=${lat},${lng}`;
-        mapLinkInput.value = generatedLink;
-        latitudeInput.value = lat;
-        longitudeInput.value = lng;
-        locationBtn.disabled = false;
-        locationBtn.textContent = '✅ Location Selected';
-      }, () => {
-        locationBtn.disabled = false;
-        locationBtn.textContent = '📍 Select Here Location';
-        showError('Could not get location. Please enable location permission.');
-      }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 });
+
+      if(!mapPickerInstance){
+        try {
+          mapPickerInstance = L.map('mapPicker');
+          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '&copy; OpenStreetMap contributors'
+          }).addTo(mapPickerInstance);
+
+          mapPickerInstance.setView([11.0168, 76.9558], 12);
+
+          mapPickerInstance.on('click', (event) => {
+            selectedLatLng = event.latlng;
+            if(!mapPickerMarker){
+              mapPickerMarker = L.marker(selectedLatLng).addTo(mapPickerInstance);
+            } else {
+              mapPickerMarker.setLatLng(selectedLatLng);
+            }
+          });
+        } catch (error) {
+          setFallbackMapMessage();
+          showError('Unable to open map picker right now. Please paste map link manually.');
+          console.error('Map initialization failed', error);
+          return;
+        }
+      }
+
+      setTimeout(() => mapPickerInstance?.invalidateSize(), 120);
+    }
+
+    function closeMapPicker(){
+      mapPickerOverlay?.classList.remove('show');
+      mapPickerModal?.classList.remove('show');
+      mapPickerOverlay?.setAttribute('aria-hidden','true');
+      mapPickerModal?.setAttribute('aria-hidden','true');
+    }
+
+    locationBtn?.addEventListener('click', () => {
+      locationBtn.textContent = '📍 Select Here Location';
+      openMapPicker();
     });
+
+    closeMapPickerBtn?.addEventListener('click', closeMapPicker);
+    cancelMapPickerBtn?.addEventListener('click', closeMapPicker);
+    mapPickerOverlay?.addEventListener('click', closeMapPicker);
+
+    confirmMapPickerBtn?.addEventListener('click', () => {
+      if(!selectedLatLng){
+        showError('Please tap on the map to choose location.');
+        return;
+      }
+      const lat = selectedLatLng.lat.toFixed(6);
+      const lng = selectedLatLng.lng.toFixed(6);
+      const generatedLink = `https://www.google.com/maps?q=${lat},${lng}`;
+
+      mapLinkInput.value = generatedLink;
+      latitudeInput.value = lat;
+      longitudeInput.value = lng;
+      locationBtn.textContent = '✅ Location Selected';
+      closeMapPicker();
+      updateOrderInsights();
+    });
+
+    function updateOrderInsights(){
+      const checkedCount = document.querySelectorAll('#menuForm input[type="checkbox"]:checked').length;
+      const quick = gatherOrderSummary();
+      if(insightItemsCount) insightItemsCount.textContent = String(checkedCount);
+      if(insightTotal) insightTotal.textContent = `₹${quick.total}`;
+
+      const budget = Number(budgetInput?.value || 0);
+      if(!budget || budget <= 0){
+        if(budgetStatus){
+          budgetStatus.textContent = 'Set budget to track remaining amount';
+          budgetStatus.className = 'budget-status';
+        }
+        return;
+      }
+
+      const diff = budget - quick.total;
+      if(!budgetStatus) return;
+      if(diff > 0){
+        budgetStatus.textContent = `₹${diff} left in your budget`;
+        budgetStatus.className = 'budget-status good';
+      } else if(diff === 0){
+        budgetStatus.textContent = 'Perfect! You used your full budget';
+        budgetStatus.className = 'budget-status warn';
+      } else {
+        budgetStatus.textContent = `Over budget by ₹${Math.abs(diff)}`;
+        budgetStatus.className = 'budget-status bad';
+      }
+    }
+
+    budgetInput?.addEventListener('input', () => {
+      try { localStorage.setItem('koumatha_budget', budgetInput.value || ''); } catch (e) {}
+      updateOrderInsights();
+    });
+
+    copySummaryBtn?.addEventListener('click', async () => {
+      const summary = gatherOrderSummary().summaryText;
+      try {
+        await navigator.clipboard.writeText(summary);
+        showError('Order preview copied ✅');
+      } catch (error) {
+        showError('Unable to copy now. Please copy manually.');
+      }
+    });
+
+    document.getElementById('menuForm')?.addEventListener('change', updateOrderInsights);
 
     function setLoading(on){
       if(on){
@@ -1171,9 +1415,15 @@
       overlay.setAttribute('aria-hidden', 'true');
       // reset form
       document.getElementById('menuForm').reset();
+      try { if(budgetInput) budgetInput.value = localStorage.getItem('koumatha_budget') || ''; } catch (e) {}
       if(locationBtn){
         locationBtn.disabled = false;
         locationBtn.textContent = '📍 Select Here Location';
+      }
+      selectedLatLng = null;
+      if(mapPickerMarker && mapPickerInstance){
+        mapPickerInstance.removeLayer(mapPickerMarker);
+        mapPickerMarker = null;
       }
       // collapse all cards
       document.querySelectorAll('.day-card').forEach(c=>{
@@ -1182,6 +1432,7 @@
         const content = c.querySelector('.card-content');
         if(content) content.style.maxHeight = '0px';
       });
+      updateOrderInsights();
       submitBtn.focus();
     }
 
@@ -1244,7 +1495,9 @@
       }, 6500);
     })();
 
+    try { if(budgetInput) budgetInput.value = localStorage.getItem('koumatha_budget') || ''; } catch (e) {}
+    updateOrderInsights();
+
   </script>
 </body>
 </html>
-
