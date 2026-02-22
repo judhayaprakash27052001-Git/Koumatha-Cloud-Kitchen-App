@@ -229,6 +229,39 @@
 
     /* Form basics */
     form#menuForm{margin-top:6px}
+
+    .menu-tools{
+      margin: 8px 0 14px;
+      background: rgba(255,255,255,0.03);
+      border:1px solid rgba(255,127,80,0.14);
+      border-radius:14px;
+      padding:12px;
+      display:grid;
+      grid-template-columns: 1fr auto auto;
+      gap:10px;
+      align-items:center;
+    }
+    .menu-search-input{
+      width:100%;
+      border-radius:10px;
+      border:1px solid rgba(255,127,80,0.18);
+      padding:10px 12px;
+      background: rgba(255,255,255,0.04);
+      color:#fff;
+      outline:none;
+    }
+    .menu-tool-btn{
+      border:none;
+      border-radius:10px;
+      padding:10px 12px;
+      background: linear-gradient(90deg,var(--accent-1),var(--accent-2));
+      color:#fff;
+      font-weight:700;
+      cursor:pointer;
+      white-space:nowrap;
+    }
+    .menu-tool-toggle{ display:flex; align-items:center; gap:8px; font-weight:700; color:#ffd8ab; }
+    .menu-filter-count{ grid-column:1 / -1; color:rgba(255,181,71,0.9); font-size:0.85rem; font-weight:700; }
     .customer-info{
       display:grid;
       grid-template-columns:1fr 1fr;
@@ -553,6 +586,7 @@
       .main-title h1{ font-size:2.2rem; padding:12px 18px; border-radius:18px }
       .main-title{ margin-top:6px }
       .customer-info{ grid-template-columns:1fr; gap:12px }
+      .menu-tools{ grid-template-columns:1fr; }
       .location-row{ grid-template-columns:1fr; }
       #mapPicker{ height:300px; }
       .container{ padding:0 14px }
@@ -651,6 +685,16 @@
         </div>
         <input id="customer_latitude" name="customer_latitude" type="hidden" />
         <input id="customer_longitude" name="customer_longitude" type="hidden" />
+      </div>
+
+      <div class="menu-tools" aria-label="Menu finder tools">
+        <input type="text" id="menuSearchInput" class="menu-search-input" placeholder="🔎 Search any dish (e.g. biryani, dosa, tea...)" />
+        <label class="menu-tool-toggle" for="showSelectedOnly">
+          <input type="checkbox" id="showSelectedOnly" />
+          Show selected only
+        </label>
+        <button type="button" id="clearMenuSearch" class="menu-tool-btn">Clear</button>
+        <div id="menuFilterCount" class="menu-filter-count">Showing all menu items</div>
       </div>
 
       <div id="dayCardsContainer" aria-live="polite"></div>
@@ -948,6 +992,7 @@
         showNotification('🎉', cb.dataset.name, categoryName);
       }
       if(typeof updateOrderInsights === 'function') updateOrderInsights();
+      if(typeof refreshMenuFilter === 'function') refreshMenuFilter();
     };
 
     window.decreaseQty = function(elementId){
@@ -1039,6 +1084,40 @@
       `;
       container.appendChild(card);
     }
+
+    function refreshMenuFilter(){
+      const term = (menuSearchInput?.value || '').trim().toLowerCase();
+      const selectedOnly = !!showSelectedOnly?.checked;
+      let visibleItems = 0;
+      let totalItems = 0;
+
+      document.querySelectorAll('.menu-item-checkbox').forEach((item) => {
+        const cb = item.querySelector('input[type="checkbox"]');
+        const itemName = (cb?.dataset?.name || item.textContent || '').toLowerCase();
+        const matches = !term || itemName.includes(term);
+        const selectedOk = !selectedOnly || !!cb?.checked;
+        const show = matches && selectedOk;
+        item.style.display = show ? '' : 'none';
+        totalItems += 1;
+        if(show) visibleItems += 1;
+      });
+
+      if(menuFilterCount){
+        if(term || selectedOnly){
+          menuFilterCount.textContent = `Showing ${visibleItems} of ${totalItems} items`;
+        } else {
+          menuFilterCount.textContent = 'Showing all menu items';
+        }
+      }
+    }
+
+    menuSearchInput?.addEventListener('input', refreshMenuFilter);
+    showSelectedOnly?.addEventListener('change', refreshMenuFilter);
+    clearMenuSearch?.addEventListener('click', () => {
+      if(menuSearchInput) menuSearchInput.value = '';
+      if(showSelectedOnly) showSelectedOnly.checked = false;
+      refreshMenuFilter();
+    });
 
     // toggle card open/close
     window.toggleCard = function(headerElem){
@@ -1184,6 +1263,10 @@
     const overlay = document.getElementById('overlay');
     const totalPriceElem = document.getElementById('totalPrice');
     const closePopupBtn = document.getElementById('closePopupBtn');
+    const menuSearchInput = document.getElementById('menuSearchInput');
+    const showSelectedOnly = document.getElementById('showSelectedOnly');
+    const clearMenuSearch = document.getElementById('clearMenuSearch');
+    const menuFilterCount = document.getElementById('menuFilterCount');
     const insightItemsCount = document.getElementById('insightItemsCount');
     const insightTotal = document.getElementById('insightTotal');
     const budgetInput = document.getElementById('budgetInput');
@@ -1433,6 +1516,9 @@
         if(content) content.style.maxHeight = '0px';
       });
       updateOrderInsights();
+      if(menuSearchInput) menuSearchInput.value = '';
+      if(showSelectedOnly) showSelectedOnly.checked = false;
+      refreshMenuFilter();
       submitBtn.focus();
     }
 
@@ -1497,6 +1583,7 @@
 
     try { if(budgetInput) budgetInput.value = localStorage.getItem('koumatha_budget') || ''; } catch (e) {}
     updateOrderInsights();
+    refreshMenuFilter();
 
   </script>
 </body>
