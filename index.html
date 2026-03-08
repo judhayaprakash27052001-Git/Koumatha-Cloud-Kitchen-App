@@ -377,7 +377,8 @@
     }
     .day-header:hover{ padding-left:28px }
 
-    .day-name{ display:flex;align-items:center;gap:12px }
+    .day-name{ display:flex;align-items:center;gap:12px;min-width:0 }
+    .day-name > span:last-child{ overflow-wrap:anywhere; }
     .day-icon{ font-size:1.6rem; display:inline-block; animation: dayRotate 8s linear infinite; transform-origin:center center; will-change:transform }
     @keyframes dayRotate{0%{transform:rotate(0)}100%{transform:rotate(360deg)}}
 
@@ -421,13 +422,14 @@
     .menu-item-checkbox input[type="checkbox"]{ width:20px;height:20px;accent-color:var(--accent-1);cursor:pointer;flex-shrink:0 }
     .menu-item-checkbox.snack-item input[type="checkbox"]{ accent-color:var(--green-1) }
 
-    .menu-item-checkbox label{ flex:1; display:flex; justify-content:space-between; gap:8px; align-items:center; font-weight:600; font-size:0.98rem; cursor:pointer }
+    .menu-item-checkbox label{ flex:1; min-width:0; display:flex; justify-content:space-between; gap:8px; align-items:center; font-weight:600; font-size:0.98rem; cursor:pointer }
     .menu-item-checkbox label span:first-child{
       background: linear-gradient(90deg,var(--accent-2),var(--accent-1));
       -webkit-background-clip:text;
       background-clip:text;
       -webkit-text-fill-color:transparent;
       font-weight:700;
+      overflow-wrap:anywhere;
     }
     .menu-item-checkbox.snack-item label span:first-child{ background: linear-gradient(90deg,#00ff88,#66ff00) }
 
@@ -564,6 +566,15 @@
       .success-popup{ padding:20px }
       .total-price{ font-size:2rem }
       .announcement{ right:12px; left:12px; top: calc(var(--header-height) + 8px); max-width:unset; justify-content:flex-start }
+      .day-header{ align-items:flex-start; gap:10px; }
+      .day-header:hover{ padding-left:22px }
+      .menu-item-checkbox{ align-items:flex-start; }
+      .menu-item-checkbox label{ align-items:flex-start; flex-wrap:wrap; }
+      .menu-item-checkbox .price{ margin-left:auto; }
+      .quantity-control{ margin-left:32px; }
+      .map-picker-title,
+      .map-picker-note,
+      .price-label{ overflow-wrap:anywhere; }
     }
     @media (min-width:1200px){
       .main-title h1{ font-size:4rem }
